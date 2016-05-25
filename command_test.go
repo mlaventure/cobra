@@ -1,6 +1,8 @@
 package cobra
 
 import (
+	"bytes"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -110,5 +112,30 @@ func TestStripFlags(t *testing.T) {
 		if !reflect.DeepEqual(test.output, output) {
 			t.Errorf("expected: %v, got: %v", test.output, output)
 		}
+	}
+}
+
+
+func TestFlagErrorFunc(t *testing.T) {
+
+	cmd := &Command{
+		Use: "print",
+		RunE: func(cmd *Command, args []string) error {
+			return nil
+		},
+	}
+	expectedFmt := "This is expected: %s"
+
+	cmd.SetFlagErrorFunc(func(c *Command, err error) error {
+		return fmt.Errorf(expectedFmt, err)
+	})
+	cmd.SetArgs([]string{"--bogus-flag"})
+	cmd.SetOutput(new(bytes.Buffer))
+
+	err := cmd.Execute()
+
+	expected := fmt.Sprintf(expectedFmt, "unknown flag: --bogus-flag")
+	if err.Error() != expected {
+		t.Errorf("expected %v, got %v", expected, err.Error())
 	}
 }
