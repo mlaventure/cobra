@@ -112,6 +112,7 @@ type Command struct {
 	output        *io.Writer               // nil means stderr; use Out() method instead
 	usageFunc     func(*Command) error     // Usage can be defined by application
 	usageTemplate string                   // Can be defined by Application
+	flagErrorFunc func(*Command, error) error
 	helpTemplate  string                   // Can be defined by Application
 	helpFunc      func(*Command, []string) // Help can be defined by application
 	helpCommand   *Command                 // The help command
@@ -166,6 +167,12 @@ func (c *Command) SetUsageFunc(f func(*Command) error) {
 // Can be defined by Application
 func (c *Command) SetUsageTemplate(s string) {
 	c.usageTemplate = s
+}
+
+// SetFlagErrorFunc sets a function to generate an error when flag parsing
+// fails
+func (c *Command) SetFlagErrorFunc(f func(*Command, error) error) {
+	c.flagErrorFunc = f
 }
 
 // Can be defined by Application
@@ -226,6 +233,22 @@ func (c *Command) HelpFunc() func(*Command, []string) {
 		if err != nil {
 			c.Println(err)
 		}
+	}
+}
+
+// FlagErrorFunc returns either the function set by SetFlagErrorFunc for this
+// command or a parent, or it returns a function which returns the original
+// error.
+func (c *Command) FlagErrorFunc() (f func(*Command, error) error) {
+	if c.flagErrorFunc != nil {
+		return c.flagErrorFunc
+	}
+
+	if c.HasParent() {
+		return c.parent.FlagErrorFunc()
+	}
+	return func(c *Command, err error) error {
+		return err
 	}
 }
 
@@ -521,7 +544,7 @@ func (c *Command) execute(a []string) (err error) {
 
 	err = c.ParseFlags(a)
 	if err != nil {
-		return err
+		return c.FlagErrorFunc()(c, err)
 	}
 	// If help is called, regardless of other flags, return we want help
 	// Also say we need help if the command isn't runnable.
