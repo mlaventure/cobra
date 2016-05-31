@@ -716,6 +716,7 @@ func (c *Command) ValidateArgs(args []string) error {
 }
 
 func (c *Command) initHelpFlag() {
+	c.mergePersistentFlags()
 	if c.Flags().Lookup("help") == nil {
 		c.Flags().BoolP("help", "h", false, "help for "+c.Name())
 	}
