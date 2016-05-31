@@ -40,6 +40,7 @@ var cmdHidden = &Command{
 
 var cmdPrint = &Command{
 	Use:   "print [string to print]",
+	Args:  MinimumNArgs(1),
 	Short: "Print anything to the screen",
 	Long:  `an absolutely utterly useless command for testing.`,
 	Run: func(cmd *Command, args []string) {
@@ -93,7 +94,7 @@ var cmdTimes = &Command{
 	Run: func(cmd *Command, args []string) {
 		tt = args
 	},
-	Args: OnlyValidArgs,
+	Args:      OnlyValidArgs,
 	ValidArgs: []string{"one", "two", "three", "four"},
 }
 
@@ -107,10 +108,9 @@ var cmdRootNoRun = &Command{
 }
 
 var cmdRootSameName = &Command{
-	Use:       "print",
-	Short:     "Root with the same name as a subcommand",
-	Long:      "The root description for help",
-	Args: NoArgs,
+	Use:   "print",
+	Short: "Root with the same name as a subcommand",
+	Long:  "The root description for help",
 }
 
 var cmdRootTakesArgs = &Command{
@@ -479,6 +479,11 @@ func TestRootTakesNoArgs(t *testing.T) {
 	c.AddCommand(cmdPrint, cmdEcho)
 	result := simpleTester(c, "illegal")
 
+	if result.Error == nil {
+		t.Errorf("Expected an error")
+		t.FailNow()
+	}
+
 	expectedError := `unknown command "illegal" for "print"`
 	if !strings.Contains(result.Error.Error(), expectedError) {
 		t.Errorf("exptected %v, got %v", expectedError, result.Error.Error())
@@ -497,6 +502,11 @@ func TestRootTakesArgs(t *testing.T) {
 func TestSubCmdTakesNoArgs(t *testing.T) {
 	result := fullSetupTest("deprecated illegal")
 
+	if result.Error == nil {
+		t.Errorf("Expected an error")
+		t.FailNow()
+	}
+
 	expectedError := `unknown command "illegal" for "cobra-test deprecated"`
 	if !strings.Contains(result.Error.Error(), expectedError) {
 		t.Errorf("expected %v, got %v", expectedError, result.Error.Error())
@@ -512,6 +522,11 @@ func TestSubCmdTakesArgs(t *testing.T) {
 
 func TestCmdOnlyValidArgs(t *testing.T) {
 	result := noRRSetupTest("echo times one two five")
+
+	if result.Error == nil {
+		t.Errorf("Expected an error")
+		t.FailNow()
+	}
 
 	expectedError := `invalid argument "five"`
 	if !strings.Contains(result.Error.Error(), expectedError) {
