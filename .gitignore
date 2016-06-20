@@ -37,3 +37,4 @@ cobra.test
 .dobi
 dist
 vendor
+.glide
