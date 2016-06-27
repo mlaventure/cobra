@@ -200,3 +200,27 @@ func TestFlagErrorFunc(t *testing.T) {
 		t.Errorf("expected %v, got %v", expected, err.Error())
 	}
 }
+
+func TestRunWithTraverse(t *testing.T) {
+	cmd := &Command{
+		Use: "do",
+		TraverseChildCommands: true,
+	}
+	cmd.Flags().String("foo", "", "foo things")
+
+	sub := &Command{Use: "next"}
+	sub.Flags().String("add", "", "add things")
+	cmd.AddCommand(sub)
+
+	c, args, err := cmd.Traverse([]string{"--foo", "ok", "next"})
+	if err != nil {
+		t.Fatalf("Expected no error: %s", err)
+	}
+	if len(args) != 0 {
+		t.Fatalf("wrong args %s", args)
+	}
+	if c.Name() != sub.Name() {
+		t.Fatalf("wrong command %q expected %q", c.Name(), sub.Name())
+	}
+}
+
