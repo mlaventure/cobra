@@ -130,8 +130,8 @@ type Command struct {
 	// Disable the flag parsing. If this is true all flags will be passed to the command as arguments.
 	DisableFlagParsing bool
 
-	// TraverseChildCommands parses flags on all parents before the child command
-	TraverseChildCommands bool
+	// TraverseChildren parses flags on all parents before executing child command
+	TraverseChildren bool
 }
 
 // os.Args[1:] by default, if desired, can be overridden
@@ -715,7 +715,7 @@ func (c *Command) ExecuteC() (cmd *Command, err error) {
 	}
 
 	var flags []string
-	if c.TraverseChildCommands {
+	if c.TraverseChildren {
 		cmd, flags, err = c.Traverse(args)
 	} else {
 		cmd, flags, err = c.Find(args)
