@@ -182,12 +182,13 @@ func TestTraverseWithParentFlags(t *testing.T) {
 		TraverseChildren: true,
 	}
 	cmd.Flags().String("foo", "", "foo things")
+	cmd.Flags().BoolP("goo", "g", false, "foo things")
 
 	sub := &Command{Use: "next"}
 	sub.Flags().String("add", "", "add things")
 	cmd.AddCommand(sub)
 
-	c, args, err := cmd.Traverse([]string{"--foo", "ok", "next", "--add"})
+	c, args, err := cmd.Traverse([]string{"-g", "--foo", "ok", "next", "--add"})
 	if err != nil {
 		t.Fatalf("Expected no error: %s", err)
 	}
